@@ -15,7 +15,7 @@ import { type Addon, DEFAULT_OLLAMA_URL } from './addonModel';
 export function useLlmParsingConfig(addon: Addon) {
   const toast = useToast();
   const cfg = addon.config ?? {};
-  const [provider, setProvider] = useState<string>((cfg.provider as string) ?? 'local');
+  const [provider, setProviderState] = useState<string>((cfg.provider as string) ?? 'local');
   const [model, setModel] = useState<string>((cfg.model as string) ?? '');
   const [baseUrl, setBaseUrl] = useState<string>((cfg.baseUrl as string) ?? '');
   const [apiKey, setApiKey] = useState<string>((cfg.apiKey as string) ?? '');
@@ -81,6 +81,11 @@ export function useLlmParsingConfig(addon: Addon) {
     }
   };
 
+  const setProvider = (next: string) => {
+    if (next !== provider) setBaseUrl('');
+    setProviderState(next);
+  };
+
   const save = async () => {
     setSaving(true);
     try {
@@ -89,7 +94,7 @@ export function useLlmParsingConfig(addon: Addon) {
         config: {
           provider,
           model: model.trim(),
-          baseUrl: provider === 'anthropic' ? '' : baseUrl.trim(),
+          baseUrl: baseUrl.trim(),
           apiKey,
           vision,
         },

@@ -1,3 +1,4 @@
+import MAdminAddonManager from '../../mobile/screens/admin/MAdminAddonManager';
 // FE-ADMIN-ADDON-001 to FE-ADMIN-ADDON-039
 import { render, screen, waitFor } from '../../../tests/helpers/render';
 import userEvent from '@testing-library/user-event';
@@ -647,7 +648,8 @@ describe('AddonManager', () => {
     await user.click(screen.getByRole('button', { name: 'Anthropic' }));
     expect(screen.queryByPlaceholderText('https://api.openai.com/v1')).not.toBeInTheDocument();
     expect(screen.getByPlaceholderText('claude-opus-4-8')).toBeInTheDocument();
-    expect(screen.getByText(/Anthropic reads PDFs/)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('https://api.anthropic.com')).toBeInTheDocument();
+    expect(screen.getByText(/The Anthropic route sends the original PDF/)).toBeInTheDocument();
   });
 
   it('FE-ADMIN-ADDON-024: pulling a model streams progress and then selects it', async () => {
@@ -768,6 +770,28 @@ describe('AddonManager', () => {
     // The stale local base URL must not ride along to Anthropic — it would hijack the endpoint.
     expect(bodies[0]).toEqual({
       config: { provider: 'anthropic', model: 'claude-haiku-4-5-20251001', baseUrl: '', apiKey: 'sk-ant-live', vision: 'auto' },
+    });
+  });
+
+  it.each(['desktop', 'mobile'])('keeps an editable Anthropic gateway URL and masked API key on %s', async (shell) => {
+    const user = userEvent.setup();
+    const bodies: unknown[] = [];
+    server.use(
+      addonsRoute([llmAddon({ provider: 'anthropic', model: 'gateway-model', baseUrl: 'http://gateway.lan:4000', apiKey: '••••••••' })]),
+      http.put('/api/admin/addons/llm_parsing', async ({ request }) => {
+        bodies.push(await request.json());
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    render(<><ToastContainer />{shell === 'desktop' ? <AddonManager /> : <MAdminAddonManager />}</>);
+    const url = await screen.findByPlaceholderText('https://api.anthropic.com');
+    expect(url).toHaveValue('http://gateway.lan:4000');
+    await user.clear(url);
+    await user.type(url, 'http://other-gateway.lan:4000');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await screen.findByText('Saved');
+    expect(bodies[0]).toEqual({
+      config: { provider: 'anthropic', model: 'gateway-model', baseUrl: 'http://other-gateway.lan:4000', apiKey: '••••••••', vision: 'auto' },
     });
   });
 

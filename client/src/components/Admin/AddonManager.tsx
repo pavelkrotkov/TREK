@@ -288,15 +288,13 @@ function LlmParsingConfig({ addon }: { addon: Addon }) {
       <EditorField label="Provider">
         <CustomSelect value={provider} onChange={v => setProvider(String(v))} options={providerOptions} />
       </EditorField>
-      {provider !== 'anthropic' && (
-        <EditorField label="Base URL" htmlFor={`${fieldId}-url`}>
-          <input id={`${fieldId}-url`} type="url" autoComplete="off" className={INPUT} value={baseUrl} onChange={e => setBaseUrl(e.target.value)} onBlur={loadModels} placeholder={provider === 'local' ? 'http://localhost:11434/v1' : 'https://api.openai.com/v1'} />
-        </EditorField>
-      )}
+      <EditorField label="Base URL" htmlFor={`${fieldId}-url`}>
+        <input id={`${fieldId}-url`} type="url" autoComplete="off" className={INPUT} value={baseUrl} onChange={e => setBaseUrl(e.target.value)} onBlur={loadModels} placeholder={provider === 'local' ? 'http://localhost:11434/v1' : provider === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com/v1'} />
+      </EditorField>
       <EditorField
         label="API key"
         htmlFor={`${fieldId}-key`}
-        hint={provider === 'anthropic' ? 'Anthropic reads PDFs (including scans) natively. Local/OpenAI models receive extracted text — scanned PDFs need Anthropic.' : undefined}
+        hint={provider === 'anthropic' ? 'The Anthropic route sends the original PDF. A custom gateway must support PDF document input and tool calls.' : undefined}
       >
         <input id={`${fieldId}-key`} type="password" className={INPUT} value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder={apiKey === MASKED ? MASKED : provider === 'local' ? '(often not required)' : 'sk-…'} />
       </EditorField>

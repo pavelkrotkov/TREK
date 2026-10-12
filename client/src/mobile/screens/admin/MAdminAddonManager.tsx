@@ -302,18 +302,16 @@ function LlmParsingConfig({ addon }: { addon: Addon }) {
             })}
           </div>
         </MAdminField>
-        {provider !== 'anthropic' && (
-          <MAdminField label="Base URL">
-            <MAdminInput
-              type="url"
-              autoComplete="off"
-              value={baseUrl}
-              onChange={e => setBaseUrl(e.target.value)}
-              onBlur={loadModels}
-              placeholder={provider === 'local' ? 'http://localhost:11434/v1' : 'https://api.openai.com/v1'}
-            />
-          </MAdminField>
-        )}
+        <MAdminField label="Base URL">
+          <MAdminInput
+            type="url"
+            autoComplete="off"
+            value={baseUrl}
+            onChange={e => setBaseUrl(e.target.value)}
+            onBlur={loadModels}
+            placeholder={provider === 'local' ? 'http://localhost:11434/v1' : provider === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com/v1'}
+          />
+        </MAdminField>
         <MAdminField label="API key">
           <MAdminSecretInput
             value={apiKey}
@@ -323,7 +321,7 @@ function LlmParsingConfig({ addon }: { addon: Addon }) {
         </MAdminField>
         {provider === 'anthropic' && (
           <p className="font-geist text-[0.625rem] leading-relaxed text-m-faint">
-            Anthropic reads PDFs (including scans) natively. Local/OpenAI models receive extracted text — scanned PDFs need Anthropic.
+            The Anthropic route sends the original PDF. A custom gateway must support PDF document input and tool calls.
           </p>
         )}
       </section>
